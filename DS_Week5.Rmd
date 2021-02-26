@@ -135,8 +135,6 @@ anim_save("trains_anim.gif")
 knitr::include_graphics("trains_anim.gif")
 ```
 
-
-
 ## Garden data
 
   3. In this exercise, you will create a stacked area plot that reveals itself over time (see the `geom_area()` examples [here](https://ggplot2.tidyverse.org/reference/position_stack.html)). You will look at cumulative harvest of tomato varieties over time. You should do the following:
@@ -147,14 +145,30 @@ knitr::include_graphics("trains_anim.gif")
 
 I have started the code for you below. The `complete()` function creates a row for all unique `date`/`variety` combinations. If a variety is not harvested on one of the harvest dates in the dataset, it is filled with a value of 0.
 
-```{r}
+```{r, eval=FALSE}
 garden_harvest %>% 
   filter(vegetable == "tomatoes") %>% 
   group_by(date, variety) %>% 
   summarize(daily_harvest_lb = sum(weight)*0.00220462) %>% 
   ungroup() %>% 
-  complete(variety, date, fill = list(daily_harvest_lb = 0))
+  complete(variety, date, fill = list(daily_harvest_lb = 0)) %>% 
+  group_by(variety) %>% 
+  mutate(cum_harvest = cumsum(daily_harvest_lb)) %>% 
+  ggplot(aes(x = date, 
+             y = cum_harvest,
+             fill = fct_reorder(variety, daily_harvest_lb, sum))) +
+  geom_area() +
+  labs(y = "Cumulative Harvest", 
+       fill = "Variety") +
+  transition_reveal(date)
+
+anim_save("garden_anim.gif")
 ```
+
+```{r}
+knitr::include_graphics("garden_anim.gif")
+```
+
 
 
 ## Maps, animation, and movement!
